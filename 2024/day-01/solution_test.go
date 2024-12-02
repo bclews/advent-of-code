@@ -117,3 +117,41 @@ func TestCalculatePairedDistance(t *testing.T) {
 		})
 	}
 }
+
+func TestCalculateSimilarityScore(t *testing.T) {
+	testCases := []struct {
+		name          string
+		col1          []int
+		col2          []int
+		expectedScore int
+	}{
+		{
+			name:          "Standard Case",
+			col1:          []int{3, 4, 2, 1, 3, 3},
+			col2:          []int{4, 3, 5, 3, 9, 3},
+			expectedScore: 31, // Manually calculated
+		},
+		{
+			name:          "No Matches",
+			col1:          []int{1, 2, 3},
+			col2:          []int{4, 5, 6},
+			expectedScore: 0,
+		},
+		{
+			name:          "All Matches",
+			col1:          []int{1, 1, 1},
+			col2:          []int{1, 1, 1},
+			expectedScore: 9,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			similarityScore := calculateSimilarityScore(tc.col1, tc.col2)
+
+			if similarityScore != tc.expectedScore {
+				t.Errorf("Expected similarity score %d, got %d", tc.expectedScore, similarityScore)
+			}
+		})
+	}
+}

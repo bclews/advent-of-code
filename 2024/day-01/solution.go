@@ -92,6 +92,29 @@ func calculatePairedDistance(col1, col2 []int) (int, []Pair) {
 	return totalDistance, pairs
 }
 
+// calculateSimilarityScore computes the similarity score
+func calculateSimilarityScore(col1, col2 []int) int {
+	// Count occurrences of each number in the right list
+	rightListCounts := make(map[int]int)
+	for _, num := range col2 {
+		rightListCounts[num]++
+	}
+
+	// Count occurrences of each number in the left list
+	leftListCounts := make(map[int]int)
+	for _, num := range col1 {
+		leftListCounts[num]++
+	}
+
+	// Calculate similarity score
+	similarityScore := 0
+	for num, count := range leftListCounts {
+		similarityScore += num * rightListCounts[num] * count
+	}
+
+	return similarityScore
+}
+
 func main() {
 	// Open the file
 	file, err := os.Open("input.txt")
@@ -124,4 +147,8 @@ func main() {
 		fmt.Printf("(%d, %d) Distance: %d\n", pair.Left, pair.Right, pair.Distance)
 	}
 	fmt.Println("\nTotal Distance:", totalDistance)
+
+	// Calculate similarity score
+	similarityScore := calculateSimilarityScore(column1, column2)
+	fmt.Println("\nSimilarity Score:", similarityScore)
 }
