@@ -201,3 +201,118 @@ func TestCountSafeReports(t *testing.T) {
 		})
 	}
 }
+
+// TestIsSafeWithOneDeletion runs comprehensive tests for the IsSafeWithOneDeletion function
+func TestIsSafeWithOneDeletion(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    []int
+		expected bool
+	}{
+		// Original examples
+		{
+			name:     "Already safe 7 6 4 2 1",
+			input:    []int{7, 6, 4, 2, 1},
+			expected: true,
+		},
+		{
+			name:     "Unsafe 1 2 7 8 9",
+			input:    []int{1, 2, 7, 8, 9},
+			expected: false,
+		},
+		{
+			name:     "Unsafe 9 7 6 2 1",
+			input:    []int{9, 7, 6, 2, 1},
+			expected: false,
+		},
+		{
+			name:     "Safe by removing 3 from 1 3 2 4 5",
+			input:    []int{1, 3, 2, 4, 5},
+			expected: true,
+		},
+		{
+			name:     "Safe by removing middle 4 from 8 6 4 4 1",
+			input:    []int{8, 6, 4, 4, 1},
+			expected: true,
+		},
+		{
+			name:     "Already safe 1 3 6 7 9",
+			input:    []int{1, 3, 6, 7, 9},
+			expected: true,
+		},
+
+		// Additional edge cases
+		{
+			name:     "Empty report",
+			input:    []int{},
+			expected: false,
+		},
+		{
+			name:     "Single element report",
+			input:    []int{5},
+			expected: false,
+		},
+		{
+			name:     "Two elements safe",
+			input:    []int{1, 2},
+			expected: true,
+		},
+		{
+			name:     "Two elements unsafe",
+			input:    []int{1, 5},
+			expected: false,
+		},
+		{
+			name:     "Complex removal case 1 4 2 5 7",
+			input:    []int{1, 4, 2, 5, 7},
+			expected: true,
+		},
+		{
+			name:     "No safe removal possible 1 5 9 13 17",
+			input:    []int{1, 5, 9, 13, 17},
+			expected: false,
+		},
+	}
+
+	// Run all test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := IsSafeWithOneDeletion(tc.input)
+			if result != tc.expected {
+				t.Errorf("For %v: expected %v, got %v", tc.input, tc.expected, result)
+			}
+		})
+	}
+}
+
+// Additional test for CountSafeAfterPruning
+func TestCountSafeAfterPruning(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    [][]int
+		expected int
+	}{
+		{
+			name: "Mixed reports",
+			input: [][]int{
+				{7, 6, 4, 2, 1}, // Safe
+				{1, 2, 7, 8, 9}, // Unsafe
+				{1, 3, 6, 7, 9}, // Safe
+				{9, 7, 6, 2, 1}, // Unsafe
+				{1, 3, 2, 4, 5}, // Safe by removal
+				{8, 6, 4, 4, 1}, // Safe by removal
+				{1, 4, 2, 5, 7}, // Safe by removal
+			},
+			expected: 5,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := CountSafeAfterPruning(tc.input)
+			if result != tc.expected {
+				t.Errorf("Expected %d really safe reports, got %d", tc.expected, result)
+			}
+		})
+	}
+}

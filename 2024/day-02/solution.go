@@ -81,6 +81,31 @@ func IsReportSafe(report []int) bool {
 	return true
 }
 
+// IsSafeWithOneDeletion checks if a report is safe,
+// or can become safe by removing a single level
+func IsSafeWithOneDeletion(report []int) bool {
+	// If the report is already safe, return true
+	if IsReportSafe(report) {
+		return true
+	}
+
+	// Try removing each level and check if resulting report is safe
+	for i := 0; i < len(report); i++ {
+		// Create a new slice without the current element
+		trimmedReport := make([]int, 0, len(report)-1)
+		trimmedReport = append(trimmedReport, report[:i]...)
+		trimmedReport = append(trimmedReport, report[i+1:]...)
+
+		// If trimmed report is safe, return true
+		if IsReportSafe(trimmedReport) {
+			return true
+		}
+	}
+
+	// If no removal makes the report safe
+	return false
+}
+
 // abs returns the absolute value of an integer
 func abs(x int) int {
 	if x < 0 {
@@ -94,6 +119,18 @@ func CountSafeReports(reports [][]int) int {
 
 	for _, report := range reports {
 		if IsReportSafe(report) {
+			safeReportCount++
+		}
+	}
+
+	return safeReportCount
+}
+
+func CountSafeAfterPruning(reports [][]int) int {
+	safeReportCount := 0
+
+	for _, report := range reports {
+		if IsSafeWithOneDeletion(report) {
 			safeReportCount++
 		}
 	}
@@ -121,4 +158,8 @@ func main() {
 	// Count the number of safe reports
 	safeReportCount := CountSafeReports(unusualData)
 	fmt.Println("Number of safe reports:", safeReportCount)
+
+	// Count the number of really safe reports
+	actuallySafeReportCount := CountSafeAfterPruning(unusualData)
+	fmt.Println("Number of safe report after adjustment:", actuallySafeReportCount)
 }
