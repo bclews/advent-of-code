@@ -1,6 +1,6 @@
 # Day 1: Historian Hysteria
 
---- Day 1: Historian Hysteria ---
+--- Part One: Historian Hysteria ---
 Senior Historians need help finding the Chief Historian, who is missing. They have two lists of location IDs, but they are not similar. The task is to find the total distance between the two lists by pairing up the numbers and calculating the differences.
 
 --- Part Two ---
