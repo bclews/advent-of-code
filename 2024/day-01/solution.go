@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math"
+	"math/bits"
 	"os"
 	"sort"
 	"strconv"
@@ -13,8 +13,8 @@ import (
 
 // parseFile reads the contents of a file and returns two slices of integers
 func parseFile(r io.Reader) ([]int, []int, error) {
-	var column1 []int
-	var column2 []int
+	column1 := make([]int, 0, 1000)
+	column2 := make([]int, 0, 1000)
 	scanner := bufio.NewScanner(r)
 
 	for scanner.Scan() {
@@ -41,18 +41,10 @@ func parseFile(r io.Reader) ([]int, []int, error) {
 	return column1, column2, nil
 }
 
-// sortColumns creates a copy of the input slices and sorts them
 func sortColumns(col1, col2 []int) ([]int, []int) {
-	sorted1 := make([]int, len(col1))
-	sorted2 := make([]int, len(col2))
-
-	copy(sorted1, col1)
-	copy(sorted2, col2)
-
-	sort.Ints(sorted1)
-	sort.Ints(sorted2)
-
-	return sorted1, sorted2
+	sort.Ints(col1)
+	sort.Ints(col2)
+	return col1, col2
 }
 
 // Pair represents a pair of numbers with their distance
@@ -78,7 +70,7 @@ func calculatePairedDistance(col1, col2 []int) (int, []Pair) {
 	// Calculate distances between paired numbers
 	for i := 0; i < len(col1); i++ {
 		// Calculate absolute distance between paired numbers
-		distance := int(math.Abs(float64(col1[i] - col2[i])))
+		distance := abs(col1[i] - col2[i])
 		totalDistance += distance
 
 		// Store the pair
@@ -92,24 +84,24 @@ func calculatePairedDistance(col1, col2 []int) (int, []Pair) {
 	return totalDistance, pairs
 }
 
-// calculateSimilarityScore computes the similarity score
+func abs(x int) int {
+	mask := x >> (bits.UintSize - 1)
+	return (x ^ mask) - mask
+}
+
 func calculateSimilarityScore(col1, col2 []int) int {
-	// Count occurrences of each number in the right list
+	// Count occurrences of each number in col2
 	rightListCounts := make(map[int]int)
 	for _, num := range col2 {
 		rightListCounts[num]++
 	}
 
-	// Count occurrences of each number in the left list
-	leftListCounts := make(map[int]int)
-	for _, num := range col1 {
-		leftListCounts[num]++
-	}
-
-	// Calculate similarity score
+	// Calculate similarity score directly while iterating through col1
 	similarityScore := 0
-	for num, count := range leftListCounts {
-		similarityScore += num * rightListCounts[num] * count
+	for _, num := range col1 {
+		if count, exists := rightListCounts[num]; exists {
+			similarityScore += num * count
+		}
 	}
 
 	return similarityScore
