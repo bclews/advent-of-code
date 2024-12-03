@@ -8,8 +8,7 @@ import (
 	"strconv"
 )
 
-// FindMultiplicationMatches finds all valid mul(X,Y) instructions in the memory string
-func FindMultiplicationMatches(memory string) [][]string {
+func FindMultiplicationMatchesPartOne(memory string) [][]string {
 	// Regex to match valid mul(X,Y) instructions
 	// Ensures:
 	// - Starts with 'mul'
@@ -23,8 +22,22 @@ func FindMultiplicationMatches(memory string) [][]string {
 	return regex.FindAllStringSubmatch(memory, -1)
 }
 
-// SumMultiplicationMatches calculates the sum of products from multiplication matches
-func SumMultiplicationMatches(matches [][]string) int {
+func FindMultiplicationMatchesPartTwo(memory string) [][]string {
+	// This pattern is designed to match three different types of strings:
+	// 1. `mul(x,y)` where `x` and `y` are one or more digits (`\d+`).
+	// 2. `do()`, which is a literal string.
+	// 3. `don't()`, which is also a literal string.
+	pattern := `(mul\((\d+),(\d+)\)|do\(\)|don't\(\))`
+
+	// Compile the regex
+	regex := regexp.MustCompile(pattern)
+
+	// Return all matches
+	return regex.FindAllStringSubmatch(memory, -1)
+}
+
+// SumMultiplicationMatchesPartOne calculates the sum of products from multiplication matches
+func SumMultiplicationMatchesPartOne(matches [][]string) int {
 	// Sum of multiplication results
 	totalSum := 0
 
@@ -41,6 +54,34 @@ func SumMultiplicationMatches(matches [][]string) int {
 	return totalSum
 }
 
+// SumMultiplicationMatchesPartOne calculates the sum of products from multiplication matches
+func SumMultiplicationMatchesPartTwo(matches [][]string) int {
+	enabled := true
+	total := 0
+	for _, match := range matches {
+		switch match[0] {
+		case "do()":
+			enabled = true
+		case "don't()":
+			enabled = false
+		default:
+			if enabled {
+				total += sti(match[2]) * sti(match[3])
+			}
+		}
+	}
+
+	return total
+}
+
+func sti(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err.Error())
+	}
+	return i
+}
+
 func main() {
 	filename := "input.txt"
 
@@ -52,12 +93,13 @@ func main() {
 	// Convert the content to a string
 	memory := string(content)
 
-	// Find all matches first
-	matches := FindMultiplicationMatches(memory)
+	// -- Part One --
+	matchesPartOne := FindMultiplicationMatchesPartOne(memory)
+	sumPartOne := SumMultiplicationMatchesPartOne(matchesPartOne)
+	fmt.Println("Sum of all valid multiplication results for part one:", sumPartOne)
 
-	// Then sum the matches
-	sum := SumMultiplicationMatches(matches)
-
-	// Print the content
-	fmt.Println("Sum of all valid multiplication results:", sum)
+	// -- Part Two --
+	matchesPartTwo := FindMultiplicationMatchesPartTwo(memory)
+	sumPartTwo := SumMultiplicationMatchesPartTwo(matchesPartTwo)
+	fmt.Println("Sum of all valid multiplication results for part two:", sumPartTwo)
 }
