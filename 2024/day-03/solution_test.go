@@ -39,7 +39,7 @@ func TestSolveCorruptedMemoryPartOne(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			matches := FindMultiplicationMatchesPartOne(tc.input)
+			matches := regexPartOne.FindAllStringSubmatch(tc.input, -1)
 			sum := SumMultiplicationMatchesPartOne(matches)
 			if sum != tc.expected {
 				t.Errorf("For input '%s': expected %d, got %d",
@@ -94,7 +94,7 @@ func TestSolveCorruptedMemoryPartTwo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			matches := FindMultiplicationMatchesPartTwo(tc.input)
+			matches := regexPartTwo.FindAllStringSubmatch(tc.input, -1)
 			sum := SumMultiplicationMatchesPartTwo(matches)
 			if sum != tc.expected {
 				t.Errorf("For input '%s': expected %d, got %d",
