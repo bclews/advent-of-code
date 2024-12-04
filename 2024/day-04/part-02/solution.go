@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"unicode"
 )
 
 // Pattern represents a 3x3 grid search pattern
@@ -34,11 +33,6 @@ var validPatterns = []Pattern{
 	},
 }
 
-// isValidLetterForPattern checks if a letter can match the pattern
-func isValidLetterForPattern(r rune) bool {
-	return unicode.IsUpper(r)
-}
-
 // matchPattern checks if a 3x3 grid matches a pattern template
 func matchPattern(grid [][]rune, x, y int, pattern Pattern) bool {
 	for i := 0; i < 3; i++ {
@@ -48,9 +42,6 @@ func matchPattern(grid [][]rune, x, y int, pattern Pattern) bool {
 
 			// Skip dot (wildcard) matches
 			if patternCell == '.' {
-				if !isValidLetterForPattern(gridCell) {
-					return false
-				}
 				continue
 			}
 
@@ -63,21 +54,8 @@ func matchPattern(grid [][]rune, x, y int, pattern Pattern) bool {
 	return true
 }
 
-// printSubgrid prints the 3x3 subgrid at the given coordinates
-func printSubgrid(grid [][]rune, x, y int) {
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			fmt.Printf("%c ", grid[x+i][y+j])
-		}
-		fmt.Println()
-	}
-	fmt.Println()
-}
-
-// findPatterns searches the grid for matching 3x3 patterns
-func findPatterns(grid [][]rune) []string {
-	var results []string
-
+func countXmasGrids(grid [][]rune) int {
+	count := 0
 	for x := 0; x <= len(grid)-3; x++ {
 		for y := 0; y <= len(grid[0])-3; y++ {
 			// Center cell must be 'A'
@@ -87,18 +65,12 @@ func findPatterns(grid [][]rune) []string {
 
 			for _, pattern := range validPatterns {
 				if matchPattern(grid, x, y, pattern) {
-					matchStr := fmt.Sprintf("Found at (%d, %d)", x, y)
-					results = append(results, matchStr)
-
-					// Print the matched subgrid for debugging
-					fmt.Println(matchStr)
-					printSubgrid(grid, x, y)
+					count++
 				}
 			}
 		}
 	}
-
-	return results
+	return count
 }
 
 func parseFile(r io.Reader) ([][]rune, error) {
@@ -133,6 +105,6 @@ func main() {
 		return
 	}
 
-	results := findPatterns(grid)
-	fmt.Printf("Pattern Matches: %d\n", len(results))
+	xmasGrids := countXmasGrids(grid)
+	fmt.Printf("Pattern Matches: %d\n", xmasGrids)
 }
