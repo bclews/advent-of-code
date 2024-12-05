@@ -38,6 +38,38 @@ func (poc *PageOrderChecker) IsValidOrder(pages []int) bool {
 	return true
 }
 
+func (poc *PageOrderChecker) ReorderUpdate(pages []int) []int {
+	// Create a copy of the pages slice to avoid modifying the original
+	updatedPages := make([]int, len(pages))
+	copy(updatedPages, pages)
+
+	// Continue attempting to reorder until the order is valid
+	for !poc.IsValidOrder(updatedPages) {
+		// Find the first pair of pages that violate the ordering rules
+		violatingPair := poc.findViolatingPair(updatedPages)
+		if violatingPair == nil {
+			break // No clear way to resolve conflicts
+		}
+
+		// Swap the pages to attempt to resolve the violation
+		updatedPages[violatingPair[0]], updatedPages[violatingPair[1]] = updatedPages[violatingPair[1]], updatedPages[violatingPair[0]]
+	}
+
+	return updatedPages
+}
+
+func (poc *PageOrderChecker) findViolatingPair(pages []int) []int {
+	for i := 0; i < len(pages); i++ {
+		for j := i + 1; j < len(pages); j++ {
+			// Check if the later page must come before the earlier page
+			if poc.rules[pages[j]] != nil && poc.rules[pages[j]][pages[i]] {
+				return []int{i, j}
+			}
+		}
+	}
+	return nil
+}
+
 func parseFile(r io.Reader) ([]string, [][]int, error) {
 	scanner := bufio.NewScanner(r)
 
@@ -127,9 +159,15 @@ func main() {
 	// Check updates and sum middle pages
 	var middlePages []int
 	for _, update := range updates {
-		if poc.IsValidOrder(update) {
-			middlePage := update[len(update)/2]
-			middlePages = append(middlePages, middlePage)
+		// If not already in valid order, try to reorder
+		if !poc.IsValidOrder(update) {
+			reorderedUpdate := poc.ReorderUpdate(update)
+
+			// Only consider if reordering was successful
+			if poc.IsValidOrder(reorderedUpdate) {
+				middlePage := reorderedUpdate[len(reorderedUpdate)/2]
+				middlePages = append(middlePages, middlePage)
+			}
 		}
 	}
 
