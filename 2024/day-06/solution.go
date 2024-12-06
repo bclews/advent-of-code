@@ -142,6 +142,78 @@ func positionKey(x, y int) string {
 	return string(rune(x)) + "," + string(rune(y))
 }
 
+func (m *Map) FindLoopObstructionPositions() []string {
+	loopPositions := []string{}
+
+	for y := 0; y < len(m.grid); y++ {
+		row := m.grid[y] // Ensure the row exists
+		for x := 0; x < len(row); x++ {
+
+			if m.grid[y][x] == '#' {
+				continue
+			}
+
+			// Temporarily place an obstruction
+			originalCell := m.grid[y][x]
+			m.grid[y][x] = '#'
+
+			// Check for a loop
+			if m.simulateAndDetectLoop() {
+				loopPositions = append(loopPositions, positionKey(x, y))
+				// fmt.Printf("Loop detected with obstruction at (%d, %d)\n", x, y)
+			}
+
+			// Restore the original map cell
+			m.grid[y][x] = originalCell
+		}
+	}
+
+	return loopPositions
+}
+
+func (m *Map) simulateAndDetectLoop() bool {
+	visitedStates := map[string]bool{}
+	m.GuardX, m.GuardY, m.GuardDir = m.findGuardStartingPosition()
+
+	for {
+		stateKey := fmt.Sprintf("%d,%d,%d", m.GuardX, m.GuardY, m.GuardDir)
+
+		if visitedStates[stateKey] {
+			return true
+		}
+
+		visitedStates[stateKey] = true
+
+		nextX, nextY := m.getNextPosition()
+
+		if m.isOutOfBounds(nextX, nextY) {
+			break
+		}
+
+		if m.grid[nextY][nextX] == '#' {
+			m.turnRight()
+			continue
+		}
+
+		m.move()
+	}
+
+	return false
+}
+
+// findGuardStartingPosition resets and finds the guard's starting position and direction
+func (m *Map) findGuardStartingPosition() (int, int, Direction) {
+	for y := 0; y < len(m.grid); y++ {
+		for x := 0; x < len(m.grid[y]); x++ {
+			switch m.grid[y][x] {
+			case '^':
+				return x, y, Up
+			}
+		}
+	}
+	return 0, 0, Up // Default fallback (shouldn't happen with valid maps)
+}
+
 func main() {
 	// Open the file
 	file, err := os.Open("input.txt")
@@ -166,5 +238,11 @@ func main() {
 	// Print the results
 	fmt.Printf("Total unique positions visited: %d\n", visitedPositions)
 	fmt.Printf("Guard's final position: (%d, %d)\n", m.GuardX, m.GuardY)
-	fmt.Printf("Guard's final direction: %v\n", m.GuardDir)
+	fmt.Printf("Guard's final direction: %v\n\n", m.GuardDir)
+
+	// Find obstruction positions
+	loopPositions := m.FindLoopObstructionPositions()
+
+	// Print results
+	fmt.Printf("Total positions to cause a loop: %d\n", len(loopPositions))
 }

@@ -147,3 +147,40 @@ func TestObstacleDetection(t *testing.T) {
 		})
 	}
 }
+
+func TestFindLoopObstructionPositions(t *testing.T) {
+	testCases := []struct {
+		name          string
+		inputMap      []string
+		expectedLoops int
+	}{
+		{
+			name: "Example Map with 6 Loop Positions",
+			inputMap: []string{
+				"....#.....",
+				".........#",
+				"..........",
+				"..#.......",
+				".......#..",
+				"..........",
+				".#..^.....",
+				"........#.",
+				"#.........",
+				"......#...",
+			},
+			expectedLoops: 6,
+		},
+		// Add more test cases here
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := NewMap(tc.inputMap)
+			loopPositions := m.FindLoopObstructionPositions()
+
+			if len(loopPositions) != tc.expectedLoops {
+				t.Errorf("Expected %d loop positions, got %d", tc.expectedLoops, len(loopPositions))
+			}
+		})
+	}
+}
