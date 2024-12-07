@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -18,23 +19,25 @@ func evaluate(numbers []int, operators []rune) int {
 			result += numbers[i+1]
 		case '*':
 			result *= numbers[i+1]
+		case '|': // Concatenation operator
+			result, _ = strconv.Atoi(fmt.Sprintf("%d%d", result, numbers[i+1]))
+
 		}
 	}
 	return result
 }
 
-// Function to generate all operator combinations
 func generateOperatorCombinations(n int) [][]rune {
 	combinations := [][]rune{}
-	total := 1 << n // 2^n combinations
+	operators := []rune{'+', '*', '|'}    // Added concatenation operator
+	total := int(math.Pow(3, float64(n))) // 3^n combinations
 	for i := 0; i < total; i++ {
 		combination := []rune{}
+		temp := i
 		for j := 0; j < n; j++ {
-			if i&(1<<j) > 0 {
-				combination = append(combination, '+')
-			} else {
-				combination = append(combination, '*')
-			}
+			opIndex := temp % 3
+			combination = append(combination, operators[opIndex])
+			temp /= 3
 		}
 		combinations = append(combinations, combination)
 	}
