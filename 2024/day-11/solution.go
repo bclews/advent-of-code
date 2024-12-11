@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 )
 
@@ -41,15 +40,11 @@ func splitStone(stone int) []int {
 }
 
 func main() {
-	file, err := os.Open("input.txt")
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	defer file.Close()
-
 	input := []int{0, 7, 6618216, 26481, 885, 42, 202642, 8791}
-	blinks := 25
-	stones := simulateBlinks(input, blinks)
-	fmt.Println("Number of stones after", blinks, "blinks:", len(stones))
+	blink_runs := []int{25, 75}
+
+	for _, blinks := range blink_runs {
+		stones := simulateBlinks(input, blinks)
+		fmt.Println("Number of stones after", blinks, "blinks:", len(stones))
+	}
 }
