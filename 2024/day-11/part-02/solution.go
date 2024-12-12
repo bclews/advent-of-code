@@ -6,6 +6,19 @@ import (
 	"sync"
 )
 
+/*
+	Optimisation Technique:
+    Realise the order of the numbers doesn’t matter and recursively score the numbers.
+
+  Memoization:
+    Memoize the recursive score function to avoid redundant calculations.
+
+  Cache Implementation:
+    Use a sparse array to store the results for efficient lookups.
+*/
+
+// Store the results of previous calculations to avoid redundant computations.
+// It uses a `sync.RWMutex` to ensure thread-safe access to the cache
 type stoneCache struct {
 	cache map[cacheKey]int
 	mu    sync.RWMutex
@@ -22,6 +35,7 @@ func newStoneCache() *stoneCache {
 	}
 }
 
+// Uses a read lock (`RLock`) to allow concurrent reads.
 func (sc *stoneCache) get(number, blinks int) (int, bool) {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
@@ -29,12 +43,26 @@ func (sc *stoneCache) get(number, blinks int) (int, bool) {
 	return result, exists
 }
 
+// Uses a write lock (`Lock`) to ensure exclusive access during updates.
 func (sc *stoneCache) set(number, blinks, result int) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 	sc.cache[cacheKey{number, blinks}] = result
 }
 
+/*
+This recursive function simulates the transformation of a stone based on its
+current state (`number`) and the remaining number of blinks.
+
+It first checks if the result is already cached.
+
+If not, it applies one of three rules based on the stone's current state:
+  - If the number is zero, it transforms to one.
+  - If the number has an even number of digits, it splits the number into two halves and recursively processes each half.
+  - Otherwise, it multiplies the number by 2024 and recursively processes the result.
+
+The function caches the result before returning it.
+*/
 func simulateStoneCount(number int, blinks int, cache *stoneCache) int {
 	// Check cache first
 	if cachedResult, found := cache.get(number, blinks); found {
