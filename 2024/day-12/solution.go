@@ -44,6 +44,8 @@ type regionExplorer struct {
 }
 
 // explore calculates area, perimeter, and corners of a region
+// Got the idea of exploring corners from:
+// https://www.reddit.com/r/adventofcode/comments/1hcf16m/2024_day_12_everyone_must_be_hating_today_so_here
 func (re *regionExplorer) explore(start Coord) (area, perimeter, corners int) {
 	if re.visited[start] {
 		return 0, 0, 0
