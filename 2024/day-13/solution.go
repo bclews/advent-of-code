@@ -120,9 +120,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Part one
 	tokens := 0
 	for _, clawMachine := range clawMachines {
 		tokens += solve(clawMachine)
 	}
-	fmt.Println(tokens)
+	fmt.Println("The number of tokens required to win all prizes for part one is:", tokens)
+
+	// Part two
+	// Iterate over `clawMachine` and add 10000000000000 to `Prize.x` and `Prize.y`
+	tokens = 0
+	for _, clawMachine := range clawMachines {
+		clawMachine.Prize.x += 10000000000000
+		clawMachine.Prize.y += 10000000000000
+		tokens += solve(clawMachine)
+	}
+	fmt.Println("The number of tokens required to win all prizes for part two is:", tokens)
 }
