@@ -133,8 +133,47 @@ func calculateSafetyFactor(robots []Robot, width, height, seconds int) int {
 	return quadrantCounts[1] * quadrantCounts[2] * quadrantCounts[3] * quadrantCounts[4]
 }
 
+func findMaxConsecutiveRobots(robots []Robot, width, height, seconds int) (int, int) {
+	maxConsecutive, maxTime := 0, 0
+
+	for time := 0; time < seconds; time++ {
+		positions := trackRobotPositions(robots, time, width, height)
+
+		for y := 0; y < height; y++ {
+			for startX := 0; startX < width; startX++ {
+				consecutive := countConsecutiveRobots(positions, startX, y, width)
+				if consecutive > maxConsecutive {
+					maxConsecutive = consecutive
+					maxTime = time
+				}
+			}
+		}
+	}
+
+	return maxConsecutive, maxTime
+}
+
+func trackRobotPositions(robots []Robot, time, width, height int) map[Point]bool {
+	positions := make(map[Point]bool)
+	for _, robot := range robots {
+		pos := robot.calculatePosition(time, width, height)
+		positions[pos] = true
+	}
+	return positions
+}
+
+func countConsecutiveRobots(positions map[Point]bool, startX, y, width int) int {
+	consecutive := 0
+	for x := startX; x < width; x++ {
+		if !positions[Point{x: x, y: y}] {
+			break
+		}
+		consecutive++
+	}
+	return consecutive
+}
+
 func main() {
-	// Open the file
 	file, err := os.Open("input.txt")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -142,14 +181,25 @@ func main() {
 	}
 	defer file.Close()
 
-	// Parse the file
 	robots, err := parseFile(file)
 	if err != nil {
 		fmt.Println("Error parsing file:", err)
 		return
 	}
 
+	width := 101
+	height := 103
+	seconds := 100
+
 	// Calculate the safety factor
-	safetyFactor := calculateSafetyFactor(robots, 101, 103, 100)
-	fmt.Println("Safety factor:", safetyFactor)
+	safetyFactor := calculateSafetyFactor(robots, width, height, seconds)
+	fmt.Println("Part one:")
+	fmt.Println("\tSafety factor:", safetyFactor)
+
+	// Find the maximum consecutive robots on a line
+	seconds = 10000
+	maxConsecutive, maxTime := findMaxConsecutiveRobots(robots, width, height, seconds)
+	fmt.Println("Part two:")
+	fmt.Println("\tMaximum consecutive robots: ", maxConsecutive)
+	fmt.Println("\tFound at time: ", maxTime)
 }
