@@ -105,39 +105,52 @@ func rotateCounterClockwise(dir Direction) Direction {
 }
 
 func FindLowestScoreWithPaths(maze []string) (int, map[Position]bool) {
-	// Find start and end positions
+	start, end := findStartAndEndPositions(maze)
+	pq := initializePriorityQueue(start)
+	distTo, pathInfo := initializeMaps()
+	lowestEndCost := -1
+
+	lowestEndCost = runDijkstra(maze, pq, distTo, pathInfo, start, end, lowestEndCost)
+	optimalCells := findOptimalCells(pathInfo, distTo, start, end, lowestEndCost)
+
+	return lowestEndCost, optimalCells
+}
+
+func findStartAndEndPositions(maze []string) (Position, Position) {
 	var start, end Position
 	for y := range maze {
 		for x := range maze[y] {
-			if maze[y][x] == 'S' {
+			switch maze[y][x] {
+			case 'S':
 				start = Position{x, y}
-			}
-			if maze[y][x] == 'E' {
+			case 'E':
 				end = Position{x, y}
 			}
 		}
 	}
+	return start, end
+}
 
-	// First pass: Find the lowest cost to reach the end
+func initializePriorityQueue(start Position) PriorityQueue {
 	pq := make(PriorityQueue, 0)
 	heap.Init(&pq)
 	heap.Push(&pq, &State{pos: start, dir: East, cost: 0})
+	return pq
+}
 
-	distTo := make(map[string]int)
-	pathInfo := make(map[string]*PathInfo)
-	lowestEndCost := -1
+func initializeMaps() (map[string]int, map[string]*PathInfo) {
+	return make(map[string]int), make(map[string]*PathInfo)
+}
 
-	// Run Dijkstra's algorithm
+func runDijkstra(maze []string, pq PriorityQueue, distTo map[string]int, pathInfo map[string]*PathInfo, start, end Position, lowestEndCost int) int {
 	for pq.Len() > 0 {
 		current := heap.Pop(&pq).(*State)
 		currentKey := stateKey(current.pos, current.dir)
 
-		// Skip if we've found a better path to this state
 		if cost, exists := distTo[currentKey]; exists && cost < current.cost {
 			continue
 		}
 
-		// Update lowest end cost if we've reached the end
 		if current.pos == end {
 			if lowestEndCost == -1 || current.cost < lowestEndCost {
 				lowestEndCost = current.cost
@@ -145,7 +158,6 @@ func FindLowestScoreWithPaths(maze []string) (int, map[Position]bool) {
 			continue
 		}
 
-		// Initialize or update path info
 		if _, exists := pathInfo[currentKey]; !exists {
 			pathInfo[currentKey] = &PathInfo{
 				cost: current.cost,
@@ -153,45 +165,52 @@ func FindLowestScoreWithPaths(maze []string) (int, map[Position]bool) {
 			}
 		}
 
-		// Try all possible moves
-		moves := []struct {
-			pos  Position
-			dir  Direction
-			cost int
-		}{
-			{getNextPosition(current.pos, current.dir), current.dir, 1},
-			{current.pos, rotateClockwise(current.dir), 1000},
-			{current.pos, rotateCounterClockwise(current.dir), 1000},
-		}
-
+		moves := getPossibleMoves(current)
 		for _, move := range moves {
-			if move.pos.y < 0 || move.pos.y >= len(maze) ||
-				move.pos.x < 0 || move.pos.x >= len(maze[0]) ||
-				maze[move.pos.y][move.pos.x] == '#' {
-				continue
-			}
+			if isValidMove(maze, move.pos) {
+				nextCost := current.cost + move.cost
+				nextKey := stateKey(move.pos, move.dir)
 
-			nextCost := current.cost + move.cost
-			nextKey := stateKey(move.pos, move.dir)
-
-			if nextCost <= lowestEndCost || lowestEndCost == -1 {
-				if cost, exists := distTo[nextKey]; !exists || nextCost < cost {
-					distTo[nextKey] = nextCost
-					pathInfo[currentKey].next[nextKey] = true
-					heap.Push(&pq, &State{
-						pos:  move.pos,
-						dir:  move.dir,
-						cost: nextCost,
-					})
-				} else if nextCost == cost {
-					// Add this as an alternative optimal path
-					pathInfo[currentKey].next[nextKey] = true
+				if nextCost <= lowestEndCost || lowestEndCost == -1 {
+					if cost, exists := distTo[nextKey]; !exists || nextCost < cost {
+						distTo[nextKey] = nextCost
+						pathInfo[currentKey].next[nextKey] = true
+						heap.Push(&pq, &State{
+							pos:  move.pos,
+							dir:  move.dir,
+							cost: nextCost,
+						})
+					} else if nextCost == cost {
+						pathInfo[currentKey].next[nextKey] = true
+					}
 				}
 			}
 		}
 	}
+	return lowestEndCost
+}
 
-	// Second pass: Find all cells that are part of paths reaching the end with optimal cost
+func getPossibleMoves(current *State) []struct {
+	pos  Position
+	dir  Direction
+	cost int
+} {
+	return []struct {
+		pos  Position
+		dir  Direction
+		cost int
+	}{
+		{getNextPosition(current.pos, current.dir), current.dir, 1},
+		{current.pos, rotateClockwise(current.dir), 1000},
+		{current.pos, rotateCounterClockwise(current.dir), 1000},
+	}
+}
+
+func isValidMove(maze []string, pos Position) bool {
+	return pos.y >= 0 && pos.y < len(maze) && pos.x >= 0 && pos.x < len(maze[0]) && maze[pos.y][pos.x] != '#'
+}
+
+func findOptimalCells(pathInfo map[string]*PathInfo, distTo map[string]int, start, end Position, lowestEndCost int) map[Position]bool {
 	optimalCells := make(map[Position]bool)
 	seen := make(map[string]bool)
 
@@ -230,13 +249,10 @@ func FindLowestScoreWithPaths(maze []string) (int, map[Position]bool) {
 		return reachesEnd
 	}
 
-	// Start DFS from the starting position
 	dfs(start, East)
-
-	// Ensure end position is marked
 	optimalCells[end] = true
 
-	return lowestEndCost, optimalCells
+	return optimalCells
 }
 
 func ParseMaze(r io.Reader) ([]string, error) {
