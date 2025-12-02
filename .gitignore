@@ -1,0 +1,18 @@
+# Rust
+target/
+Cargo.lock
+
+# Go
+# (Go binaries handled by year-specific .gitignore)
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/plans/

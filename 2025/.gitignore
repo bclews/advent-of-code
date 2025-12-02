@@ -1,0 +1,17 @@
+# Rust build artifacts
+target/
+debug/
+release/
+
+# Cargo.lock for binaries (not libraries)
+**/day-*/Cargo.lock
+**/part-*/Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
