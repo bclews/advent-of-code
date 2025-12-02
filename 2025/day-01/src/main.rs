@@ -1,30 +1,36 @@
 use std::fs;
 
-fn parse_input(input: &str) -> Vec<(char, i32)> {
+const DIAL_START: i32 = 50;
+const DIAL_SIZE: i32 = 100;
+
+fn parse_input(input: &str) -> Result<Vec<(char, i32)>, Box<dyn std::error::Error>> {
     input
         .lines()
         .filter(|line| !line.is_empty())
         .map(|line| {
-            let direction = line.chars().next().unwrap();
-            let distance = line[1..].parse::<i32>().unwrap();
-            (direction, distance)
+            let direction = line.chars().next()
+                .ok_or("Empty line after filtering")?;
+            let distance = line.get(1..)
+                .ok_or("Line too short")?
+                .parse::<i32>()?;
+            Ok((direction, distance))
         })
         .collect()
 }
 
 fn part_one(rotations: &[(char, i32)]) -> i64 {
-    let mut position = 50; // Dial starts at 50
+    let mut position: i32 = DIAL_START;
     let mut count = 0;
 
     for &(direction, distance) in rotations {
         match direction {
             'L' => {
                 // Left means toward lower numbers (subtract)
-                position = (position - distance).rem_euclid(100);
+                position = (position - distance).rem_euclid(DIAL_SIZE);
             }
             'R' => {
                 // Right means toward higher numbers (add)
-                position = (position + distance).rem_euclid(100);
+                position = (position + distance).rem_euclid(DIAL_SIZE);
             }
             _ => panic!("Invalid direction: {}", direction),
         }
@@ -38,7 +44,7 @@ fn part_one(rotations: &[(char, i32)]) -> i64 {
 }
 
 fn part_two(rotations: &[(char, i32)]) -> i64 {
-    let mut position: i32 = 50; // Dial starts at 50
+    let mut position: i32 = DIAL_START;
     let mut count = 0;
 
     for &(direction, distance) in rotations {
@@ -46,10 +52,10 @@ fn part_two(rotations: &[(char, i32)]) -> i64 {
         for _ in 0..distance {
             match direction {
                 'L' => {
-                    position = (position - 1).rem_euclid(100);
+                    position = (position - 1).rem_euclid(DIAL_SIZE);
                 }
                 'R' => {
-                    position = (position + 1).rem_euclid(100);
+                    position = (position + 1).rem_euclid(DIAL_SIZE);
                 }
                 _ => panic!("Invalid direction: {}", direction),
             }
@@ -63,14 +69,14 @@ fn part_two(rotations: &[(char, i32)]) -> i64 {
     count
 }
 
-fn main() {
-    let input = fs::read_to_string("input.txt")
-        .expect("Failed to read input.txt");
-
-    let data = parse_input(&input);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let input = fs::read_to_string("input.txt")?;
+    let data = parse_input(&input)?;
 
     println!("Part One: {}", part_one(&data));
     println!("Part Two: {}", part_two(&data));
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -91,7 +97,7 @@ L82";
 
     #[test]
     fn test_parse_input() {
-        let data = parse_input(EXAMPLE);
+        let data = parse_input(EXAMPLE).unwrap();
         assert_eq!(data.len(), 10);
         assert_eq!(data[0], ('L', 68));
         assert_eq!(data[2], ('R', 48));
@@ -99,14 +105,14 @@ L82";
 
     #[test]
     fn test_part_one() {
-        let data = parse_input(EXAMPLE);
+        let data = parse_input(EXAMPLE).unwrap();
         // Expected answer: 3 (dial points at 0 after rotations R48, L55, and L99)
         assert_eq!(part_one(&data), 3);
     }
 
     #[test]
     fn test_part_two() {
-        let data = parse_input(EXAMPLE);
+        let data = parse_input(EXAMPLE).unwrap();
         // Expected answer: 6 (3 times at end of rotation + 3 times during rotation)
         // During rotations that cross 0:
         // - L68 from 50 -> 82 crosses 0 once
